@@ -241,17 +241,33 @@
     }
 
     // ── Fetch & parse CSV ──
-    // Use allorigins.win as a CORS proxy since the CSV is cross-origin for GitHub Pages
-    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(csvUrl);
+    // Try proxies in order — first one to succeed wins
+    const PROXIES = [
+      url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+      url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+    ];
 
-    fetch(proxyUrl)
-      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    async function fetchWithFallback(url) {
+      for (const makeProxy of PROXIES) {
+        try {
+          const r = await fetch(makeProxy(url));
+          if (!r.ok) continue;
+          const text = await r.text();
+          if (text.trim().startsWith('<')) continue; // got HTML error page, try next
+          return text;
+        } catch (e) { /* try next */ }
+      }
+      throw new Error('All proxies failed. Make sure the sheet is published to web as CSV.');
+    }
+
+    fetchWithFallback(csvUrl)
       .then(csv => {
         const events = parseSheet(csv);
         render(events);
       })
       .catch(err => {
-        showError('Failed to load sheet: ' + err.message + '.<br/>Make sure the sheet is published to web as CSV.');
+        showError(err.message);
       });
 
     // ── CSV parser ──
