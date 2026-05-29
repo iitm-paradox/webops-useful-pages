@@ -200,6 +200,7 @@
   </div>
 
   <script>
+    (function () {
     // ── Department theme config (exact colours from student site) ──
     const THEMES = {
       cultural: {
@@ -229,12 +230,12 @@
 
     const theme = THEMES[dept] || THEMES.cultural;
 
-    // Apply theme
+    // Apply theme first — always, regardless of CSV
     document.title = theme.title + ' — Paradox 2026 Preview';
     document.getElementById('bg-gradient').style.background = theme.gradient;
     document.getElementById('dept-title').textContent = theme.title;
 
-    if (!csvUrl) {
+    if (!csvUrl || csvUrl === 'MISSING') {
       showError('No CSV URL provided. Go back and enter the Sheet CSV URL.');
       return;
     }
@@ -351,6 +352,8 @@
       document.getElementById('events-container').innerHTML =
         `<p class="err-msg">${msg}</p>`;
     }
+
+    })(); // end IIFE
   </script>
 </body>
 </html>
