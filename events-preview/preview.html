@@ -241,33 +241,37 @@
     }
 
     // ── Fetch & parse CSV ──
-    // Published Google Sheets CSVs include Access-Control-Allow-Origin: *
-    // so we can fetch directly with no proxy needed.
-    fetch(csvUrl)
-      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-      .then(csv => {
-        const events = parseSheet(csv);
-        render(events);
-      })
+    // Published Sheets have CORS headers but some browsers still block — use corsproxy.io as fallback
+    async function fetchCSV(url) {
+      try {
+        const r = await fetch(url);
+        if (r.ok) { const t = await r.text(); if (!t.trim().startsWith('<')) return t; }
+      } catch(e) {}
+      // fallback proxy
+      const r = await fetch('https://corsproxy.io/?' + encodeURIComponent(url));
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    }
+
+    fetchCSV(csvUrl)
+      .then(csv => { render(parseSheet(csv)); })
       .catch(err => {
         showError('Failed to load sheet: ' + err.message + '. Make sure the sheet is published to web as CSV.');
       });
 
     // ── CSV parser ──
-    // Columns: event_name | event_id | is_approved | poster_id | details_id | form_id | event_head_email
+    // Columns: event_name(0) | is_approved(1) | poster_id(2) | details_id(3) | form_id(4) | event_head_email(5)
     function parseSheet(csv) {
       const lines = csv.trim().split('\n');
       const events = [];
-      // skip header row (row 0)
       for (let i = 1; i < lines.length; i++) {
         const cols = parseCSVLine(lines[i]);
-        if (!cols || cols.length < 6) continue;
-        const isApproved = (cols[2] || '').trim().toUpperCase();
+        if (!cols || cols.length < 2) continue;
+        const isApproved = (cols[1] || '').trim().toUpperCase();
         if (isApproved !== 'TRUE') continue;
         events.push({
           name:      (cols[0] || '').trim(),
-          event_id:  (cols[1] || '').trim(),
-          poster_id: (cols[3] || '').trim(),
+          poster_id: (cols[2] || '').trim(),
         });
       }
       return events;
