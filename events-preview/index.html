@@ -63,11 +63,11 @@
       padding: 0.7rem 1rem;
       border-radius: 8px;
       font-size: 0.9rem;
-      font-family: monospace;
       outline: none;
       transition: border-color 0.2s;
     }
-    select { font-family: sans-serif; }
+    select { font-family: sans-serif; cursor: pointer; }
+    input  { font-family: monospace; }
     select option { background: #1a1a2e; color: #fff; }
     select:focus, input:focus { border-color: rgba(255,255,255,0.35); }
 
@@ -79,9 +79,9 @@
       line-height: 1.5;
     }
 
-    button {
+    #btn-preview {
       width: 100%;
-      margin-top: 0.5rem;
+      margin-top: 0.75rem;
       padding: 0.85rem;
       border: none;
       border-radius: 8px;
@@ -91,18 +91,16 @@
       text-transform: uppercase;
       cursor: pointer;
       transition: opacity 0.2s;
+      background: #521570;
+      color: #fdf7c7;
     }
-    button:hover { opacity: 0.85; }
-
-    #btn-cultural  { background: #521570; color: #fdf7c7; }
-    #btn-technical { background: #23345C; color: #dbdccd; }
-    #btn-sports    { background: #5C1C15; color: #f1d7c4; }
+    #btn-preview:hover { opacity: 0.85; }
 
     .err {
       font-family: sans-serif;
       font-size: 0.8rem;
       color: #f87171;
-      margin-top: 0.75rem;
+      margin-top: 0.6rem;
       display: none;
     }
   </style>
@@ -117,7 +115,7 @@
 
     <div class="field">
       <label>Department</label>
-      <select id="dept">
+      <select id="dept" onchange="updateBtn()">
         <option value="cultural">Culturals</option>
         <option value="technicals">Technicals</option>
         <option value="sports">Sports</option>
@@ -134,21 +132,37 @@
       </p>
     </div>
 
-    <p class="err" id="err">Please fill in all fields.</p>
-
-    <button id="btn-cultural"  onclick="go('cultural')">Preview Culturals</button>
-    <button id="btn-technical" onclick="go('technicals')" style="margin-top:0.6rem;">Preview Technicals</button>
-    <button id="btn-sports"    onclick="go('sports')" style="margin-top:0.6rem;">Preview Sports</button>
+    <p class="err" id="err">Please enter the Sheet CSV URL.</p>
+    <button id="btn-preview" onclick="go()">Preview Culturals</button>
   </div>
 
   <script>
-    function go(dept) {
-      const csv = document.getElementById('csv_url').value.trim();
-      const err = document.getElementById('err');
+    const LABELS = {
+      cultural:   'Preview Culturals',
+      technicals: 'Preview Technicals',
+      sports:     'Preview Sports',
+    };
+    const COLORS = {
+      cultural:   { bg: '#521570', color: '#fdf7c7' },
+      technicals: { bg: '#23345C', color: '#dbdccd' },
+      sports:     { bg: '#5C1C15', color: '#f1d7c4' },
+    };
+
+    function updateBtn() {
+      const dept = document.getElementById('dept').value;
+      const btn  = document.getElementById('btn-preview');
+      btn.textContent = LABELS[dept];
+      btn.style.background = COLORS[dept].bg;
+      btn.style.color = COLORS[dept].color;
+    }
+
+    function go() {
+      const dept = document.getElementById('dept').value;
+      const csv  = document.getElementById('csv_url').value.trim();
+      const err  = document.getElementById('err');
       if (!csv) { err.style.display = 'block'; return; }
       err.style.display = 'none';
-      const params = new URLSearchParams({ dept, csv });
-      window.location.href = 'preview.html?' + params.toString();
+      window.location.href = 'preview.html?' + new URLSearchParams({ dept, csv }).toString();
     }
   </script>
 </body>
