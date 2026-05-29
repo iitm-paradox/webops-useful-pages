@@ -270,6 +270,21 @@
   background: var(--color-card-bg);
 }
 .event-card-link:hover { transform: scale(1.03) translateY(-5px); }
+.event-card-link.not-approved { opacity: 0.55; }
+.event-card-link.not-approved:hover { opacity: 0.8; }
+
+.unapproved-badge {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  text-align: center;
+  font-family: sans-serif;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: rgba(0,0,0,0.6);
+  color: #fcd34d;
+  padding: 0.3rem 0;
+}
 
 .event-card-inner {
   aspect-ratio: 4 / 5;

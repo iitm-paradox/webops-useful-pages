@@ -29,25 +29,23 @@
 
   <script src="shared.js"></script>
   <script>
-    const p          = new URLSearchParams(location.search);
-    const dept       = p.get('dept')       || 'cultural';
-    const posterId   = p.get('poster_id')  || '';
-    const detailsId  = p.get('details_id') || '';
+    const p            = new URLSearchParams(location.search);
+    const dept         = p.get('dept')         || 'cultural';
+    const posterId     = p.get('poster_id')    || '';
+    const detailsJson  = p.get('details_json') || '';
 
     applyTheme(dept);
 
-    if (!detailsId) {
+    if (!detailsJson) {
       document.getElementById('root').innerHTML =
-        '<p class="event-err">No details_id provided.</p>';
+        '<p class="event-err">No event data yet — run the Approve script in the Sheet first.</p>';
     } else {
-      fetch(driveFileUrl(detailsId))
-        .then(r => r.json())
-        .then(ev => render(ev))
-        .catch(() => {
-          document.getElementById('root').innerHTML =
-            '<p class="event-err">Failed to load event details. ' +
-            'Make sure event_details.json is shared with "Anyone with the link".</p>';
-        });
+      try {
+        render(JSON.parse(detailsJson));
+      } catch(e) {
+        document.getElementById('root').innerHTML =
+          '<p class="event-err">Failed to parse event details JSON.</p>';
+      }
     }
 
     function render(ev) {

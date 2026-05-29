@@ -67,12 +67,11 @@
 
         events.forEach((ev, idx) => {
           const a = document.createElement('a');
-          a.className = 'event-card-link';
+          a.className = 'event-card-link' + (ev.is_approved ? '' : ' not-approved');
           const ep = new URLSearchParams({
             dept,
-            poster_id:  ev.poster_id,
-            details_id: ev.details_id,
-            form_id:    ev.form_id,
+            poster_id:    ev.poster_id,
+            details_json: ev.details_json,
           });
           a.href  = 'event.html?' + ep.toString();
           a.title = ev.name;
@@ -100,6 +99,12 @@
             inner.appendChild(img);
           } else {
             inner.innerHTML = '<span class="placeholder-text">' + ev.name + '</span>';
+          }
+
+          // Unapproved badge
+          if (!ev.is_approved) {
+            inner.insertAdjacentHTML('beforeend',
+              '<span class="unapproved-badge">Not approved</span>');
           }
 
           a.appendChild(inner);
