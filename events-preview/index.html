@@ -122,21 +122,18 @@
       </select>
     </div>
 
-    <div class="field">
-      <label>Sheet Published CSV URL</label>
-      <input id="csv_url" type="text"
-        placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" />
-      <p class="hint">
-        File → Share → Publish to web → select the sheet → CSV → Copy link.<br/>
-        Only rows where <strong>is_approved = TRUE</strong> will show.
-      </p>
-    </div>
-
-    <p class="err" id="err">Please enter the Sheet CSV URL.</p>
+    <p class="err" id="err">CSV URL not configured for this department yet.</p>
     <button id="btn-preview" onclick="go()">Preview Culturals</button>
   </div>
 
   <script>
+    // ── Paste the published CSV URLs here once each dept Sheet is set up ──
+    const SHEET_CSVS = {
+      cultural:   '',   // TODO: paste Culturals sheet CSV URL
+      technicals: '',   // TODO: paste Technicals sheet CSV URL
+      sports:     '',   // TODO: paste Sports sheet CSV URL
+    };
+
     const LABELS = {
       cultural:   'Preview Culturals',
       technicals: 'Preview Technicals',
@@ -158,7 +155,7 @@
 
     function go() {
       const dept = document.getElementById('dept').value;
-      const csv  = document.getElementById('csv_url').value.trim();
+      const csv  = SHEET_CSVS[dept];
       const err  = document.getElementById('err');
       if (!csv) { err.style.display = 'block'; return; }
       err.style.display = 'none';
