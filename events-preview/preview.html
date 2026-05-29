@@ -241,19 +241,9 @@
     }
 
     // ── Fetch & parse CSV ──
-    // Published Sheets have CORS headers but some browsers still block — use corsproxy.io as fallback
-    async function fetchCSV(url) {
-      try {
-        const r = await fetch(url);
-        if (r.ok) { const t = await r.text(); if (!t.trim().startsWith('<')) return t; }
-      } catch(e) {}
-      // fallback proxy
-      const r = await fetch('https://corsproxy.io/?' + encodeURIComponent(url));
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.text();
-    }
-
-    fetchCSV(csvUrl)
+    // Published Google Sheets CSVs have Access-Control-Allow-Origin: * — direct fetch works.
+    fetch(csvUrl)
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
       .then(csv => { render(parseSheet(csv)); })
       .catch(err => {
         showError('Failed to load sheet: ' + err.message + '. Make sure the sheet is published to web as CSV.');
