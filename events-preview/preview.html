@@ -4,349 +4,124 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Event Preview — Paradox 2026</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      min-height: 100vh;
-      color: #fff;
-      font-family: Georgia, 'Times New Roman', serif;
-      overflow-x: hidden;
-      position: relative;
-    }
-
-    /* ── Background ── */
-    #bg {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-    }
-    #bg-gradient { position: absolute; inset: 0; }
-
-    /* ── Header ── */
-    .top-bar {
-      position: absolute;
-      top: 3rem;
-      left: 1.5rem;
-      right: 1.5rem;
-      z-index: 30;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .back-btn {
-      font-family: sans-serif;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      opacity: 0.6;
-      text-decoration: none;
-      color: #fff;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.15);
-      padding: 0.4rem 0.9rem;
-      border-radius: 999px;
-      transition: opacity 0.2s;
-    }
-    .back-btn:hover { opacity: 1; }
-
-    .preview-badge {
-      font-family: sans-serif;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      background: rgba(255,200,0,0.15);
-      border: 1px solid rgba(255,200,0,0.3);
-      color: #fcd34d;
-      padding: 0.35rem 0.8rem;
-      border-radius: 999px;
-    }
-
-    /* ── Main content ── */
-    .content {
-      position: relative;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 10rem 1.5rem 5rem;
-    }
-
-    h1 {
-      font-size: clamp(2.5rem, 8vw, 6rem);
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      margin-bottom: 3rem;
-      text-align: center;
-    }
-
-    /* ── Event grid ── */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-      width: 100%;
-      max-width: 64rem;
-    }
-    @media (min-width: 768px) {
-      .grid { grid-template-columns: repeat(4, 1fr); gap: 2rem; }
-    }
-
-    /* ── Event card ── */
-    .card {
-      border-radius: 20px;
-      padding: 6px;
-      cursor: pointer;
-      transition: transform 0.25s, box-shadow 0.25s;
-      text-decoration: none;
-      display: block;
-    }
-    .card:hover { transform: scale(1.03) translateY(-5px); }
-
-    .card-inner {
-      aspect-ratio: 4/5;
-      width: 100%;
-      border-radius: 15px;
-      border-width: 1px;
-      border-style: solid;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255,255,255,0.05);
-      transition: background 0.3s;
-    }
-    .card:hover .card-inner { background: rgba(255,255,255,0.10); }
-
-    .card-inner img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .placeholder-text {
-      font-family: sans-serif;
-      font-size: 0.7rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.3);
-      text-align: center;
-      padding: 0 0.5rem;
-    }
-
-    /* ── States ── */
-    .state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 5rem 0;
-      text-align: center;
-      width: 100%;
-    }
-    .spinner {
-      width: 40px; height: 40px;
-      border: 3px solid rgba(255,255,255,0.15);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-bottom: 1rem;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .coming-soon {
-      font-size: clamp(2rem, 6vw, 4rem);
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      opacity: 0.5;
-    }
-    .coming-soon-sub {
-      font-family: sans-serif;
-      font-size: 1rem;
-      margin-top: 1rem;
-      opacity: 0.35;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    .err-msg {
-      font-family: sans-serif;
-      color: #f87171;
-      font-size: 1rem;
-      opacity: 0.8;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body class="preview-body">
   <!-- Background -->
   <div id="bg">
     <div id="bg-gradient"></div>
   </div>
 
-  <!-- Header -->
+  <!-- Top bar -->
   <div class="top-bar">
-    <a class="back-btn" href="index.html">← Back</a>
+    <a class="back-btn" href="index.html">&#8592; Back</a>
     <span class="preview-badge">Preview Mode</span>
   </div>
 
   <!-- Content -->
-  <div class="content">
+  <div class="preview-content">
     <h1 id="dept-title"></h1>
-    <div id="events-container" class="state">
+    <div id="events-container" class="state-panel">
       <div class="spinner"></div>
-      <p style="font-family:sans-serif;opacity:0.5;font-size:0.9rem;">Loading events…</p>
+      <p class="state-loading-text">Loading events&hellip;</p>
     </div>
   </div>
 
+  <script src="shared.js"></script>
   <script>
     (function () {
-    // ── Department theme config (exact colours from student site) ──
-    const THEMES = {
-      cultural: {
-        title: 'CULTURALS',
-        gradient: 'linear-gradient(180deg, #1C0034 0%, #270A55 100%)',
-        cardBg: '#7B3FA8',
-        cardBorder: '#34044C',
-      },
-      technicals: {
-        title: 'TECHNICALS',
-        gradient: 'linear-gradient(180deg, #020F1A 0%, #152837 100%)',
-        cardBg: '#C4580F',
-        cardBorder: '#5C2A00',
-      },
-      sports: {
-        title: 'SPORTS',
-        gradient: 'linear-gradient(180deg, #1A0505 0%, #350d01 100%)',
-        cardBg: '#A63020',
-        cardBorder: '#5C1810',
-      },
-    };
+      const params = new URLSearchParams(window.location.search);
+      const dept   = params.get('dept') || 'cultural';
+      const csvUrl = params.get('csv');
 
-    // ── Parse query params ──
-    const params = new URLSearchParams(window.location.search);
-    const dept   = params.get('dept') || 'cultural';
-    const csvUrl = params.get('csv');
+      applyTheme(dept);
 
-    const theme = THEMES[dept] || THEMES.cultural;
+      const titleEl = document.getElementById('dept-title');
+      titleEl.textContent = DEPT_LABELS[dept] || dept.toUpperCase();
+      document.title = titleEl.textContent + ' — Paradox 2026 Preview';
 
-    // Apply theme first — always, regardless of CSV
-    document.title = theme.title + ' — Paradox 2026 Preview';
-    document.getElementById('bg-gradient').style.background = theme.gradient;
-    document.getElementById('dept-title').textContent = theme.title;
-
-    if (!csvUrl || csvUrl === 'MISSING') {
-      showError('No CSV URL provided. Go back and enter the Sheet CSV URL.');
-      return;
-    }
-
-    // ── Fetch & parse CSV ──
-    // Published Google Sheets CSVs have Access-Control-Allow-Origin: * — direct fetch works.
-    fetch(csvUrl)
-      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-      .then(csv => { render(parseSheet(csv)); })
-      .catch(err => {
-        showError('Failed to load sheet: ' + err.message + '. Make sure the sheet is published to web as CSV.');
-      });
-
-    // ── CSV parser ──
-    // Columns: event_name(0) | is_approved(1) | poster_id(2) | details_id(3) | form_id(4) | event_head_email(5)
-    function parseSheet(csv) {
-      const lines = csv.trim().split('\n');
-      const events = [];
-      for (let i = 1; i < lines.length; i++) {
-        const cols = parseCSVLine(lines[i]);
-        if (!cols || cols.length < 2) continue;
-        const isApproved = (cols[1] || '').trim().toUpperCase();
-        if (isApproved !== 'TRUE') continue;
-        events.push({
-          name:      (cols[0] || '').trim(),
-          poster_id: (cols[2] || '').trim(),
-        });
-      }
-      return events;
-    }
-
-    function parseCSVLine(line) {
-      const result = [];
-      let cur = '', inQuote = false;
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-        if (ch === '"') { inQuote = !inQuote; }
-        else if (ch === ',' && !inQuote) { result.push(cur); cur = ''; }
-        else { cur += ch; }
-      }
-      result.push(cur);
-      return result;
-    }
-
-    // ── Render ──
-    function driveImgUrl(id) {
-      return 'https://lh3.googleusercontent.com/d/' + id;
-    }
-
-    function render(events) {
-      const container = document.getElementById('events-container');
-
-      if (events.length === 0) {
-        container.innerHTML = `
-          <p class="coming-soon">COMING SOON</p>
-          <p class="coming-soon-sub">No approved events yet</p>`;
+      if (!csvUrl || csvUrl === 'MISSING') {
+        showError('No CSV URL provided. Go back and select a department.');
         return;
       }
 
-      const grid = document.createElement('div');
-      grid.className = 'grid';
+      // Published Google Sheets CSVs have Access-Control-Allow-Origin: * — direct fetch works.
+      fetch(csvUrl)
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+        .then(csv => render(parseSheet(csv)))
+        .catch(err => showError('Failed to load sheet: ' + err.message +
+          '. Make sure the sheet is published to web as CSV.'));
 
-      events.forEach((ev, idx) => {
-        const a = document.createElement('a');
-        a.className = 'card';
-        a.href = '#';
-        a.title = ev.name;
-        a.style.background = theme.cardBg;
-        // staggered fade-in
-        a.style.opacity = '0';
-        a.style.transform = 'translateY(20px)';
-        a.style.transition = `opacity 0.5s ${idx * 0.08}s, transform 0.5s ${idx * 0.08}s`;
+      function render(events) {
+        const container = document.getElementById('events-container');
 
-        const inner = document.createElement('div');
-        inner.className = 'card-inner';
-        inner.style.borderColor = theme.cardBorder;
-
-        if (ev.poster_id) {
-          const img = document.createElement('img');
-          img.alt = ev.name;
-          img.src = driveImgUrl(ev.poster_id);
-          img.onerror = () => {
-            img.style.display = 'none';
-            inner.innerHTML = `<span class="placeholder-text">${ev.name}</span>`;
-          };
-          inner.appendChild(img);
-        } else {
-          inner.innerHTML = `<span class="placeholder-text">${ev.name}</span>`;
+        if (events.length === 0) {
+          container.innerHTML =
+            '<p class="coming-soon">COMING SOON</p>' +
+            '<p class="coming-soon-sub">No approved events yet</p>';
+          return;
         }
 
-        a.appendChild(inner);
-        grid.appendChild(a);
+        const grid = document.createElement('div');
+        grid.className = 'events-grid';
 
-        // trigger animation after paint
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          a.style.opacity = '1';
-          a.style.transform = 'translateY(0)';
-        }));
-      });
+        events.forEach((ev, idx) => {
+          const a = document.createElement('a');
+          a.className = 'event-card-link';
+          const ep = new URLSearchParams({
+            dept,
+            poster_id:  ev.poster_id,
+            details_id: ev.details_id,
+            form_id:    ev.form_id,
+          });
+          a.href  = 'event.html?' + ep.toString();
+          a.title = ev.name;
 
-      container.className = ''; // remove .state centering
-      container.innerHTML = '';
-      container.appendChild(grid);
-    }
+          // Staggered fade-in animation
+          a.style.opacity   = '0';
+          a.style.transform = 'translateY(20px)';
+          a.style.transition =
+            `opacity 0.5s ${idx * 0.08}s, transform 0.5s ${idx * 0.08}s`;
 
-    function showError(msg) {
-      document.getElementById('events-container').innerHTML =
-        `<p class="err-msg">${msg}</p>`;
-    }
+          const inner = document.createElement('div');
+          inner.className = 'event-card-inner';
 
-    })(); // end IIFE
+          if (ev.poster_id) {
+            const img = document.createElement('img');
+            img.alt = ev.name;
+            img.src = driveImgUrl(ev.poster_id);
+            img.onerror = () => {
+              img.style.display = 'none';
+              inner.insertAdjacentHTML(
+                'beforeend',
+                '<span class="placeholder-text">' + ev.name + '</span>'
+              );
+            };
+            inner.appendChild(img);
+          } else {
+            inner.innerHTML = '<span class="placeholder-text">' + ev.name + '</span>';
+          }
+
+          a.appendChild(inner);
+          grid.appendChild(a);
+
+          // Trigger animation after paint
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            a.style.opacity   = '1';
+            a.style.transform = 'translateY(0)';
+          }));
+        });
+
+        container.className = ''; // remove state-panel centering
+        container.innerHTML = '';
+        container.appendChild(grid);
+      }
+
+      function showError(msg) {
+        document.getElementById('events-container').innerHTML =
+          '<p class="err-msg">' + msg + '</p>';
+      }
+    })();
   </script>
 </body>
 </html>

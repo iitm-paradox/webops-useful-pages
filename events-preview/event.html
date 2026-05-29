@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event — Paradox 2026 Preview</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="event-body">
+  <!-- Background -->
+  <div id="bg">
+    <div id="bg-gradient"></div>
+  </div>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <a class="back-btn" href="javascript:history.back()">&#8592; Back</a>
+    <span class="preview-badge">Preview Mode</span>
+  </div>
+
+  <!-- Page wrapper -->
+  <div class="event-page">
+    <div class="event-card">
+      <div id="root">
+        <div class="spinner event-spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    const p          = new URLSearchParams(location.search);
+    const dept       = p.get('dept')       || 'cultural';
+    const posterId   = p.get('poster_id')  || '';
+    const detailsId  = p.get('details_id') || '';
+
+    applyTheme(dept);
+
+    if (!detailsId) {
+      document.getElementById('root').innerHTML =
+        '<p class="event-err">No details_id provided.</p>';
+    } else {
+      fetch(driveFileUrl(detailsId))
+        .then(r => r.json())
+        .then(ev => render(ev))
+        .catch(() => {
+          document.getElementById('root').innerHTML =
+            '<p class="event-err">Failed to load event details. ' +
+            'Make sure event_details.json is shared with "Anyone with the link".</p>';
+        });
+    }
+
+    function render(ev) {
+      const prizes = [];
+      if (parseFloat(ev.first_prize_amount  || 0) > 0) prizes.push(['1st Prize', ev.first_prize_amount]);
+      if (parseFloat(ev.second_prize_amount || 0) > 0) prizes.push(['2nd Prize', ev.second_prize_amount]);
+      if (parseFloat(ev.third_prize_amount  || 0) > 0) prizes.push(['3rd Prize', ev.third_prize_amount]);
+
+      document.getElementById('root').innerHTML = `
+        <div class="card-body">
+          <div class="card-header">
+            <span>${DEPT_HEADER_LABELS[dept] || dept.toUpperCase()}</span>
+          </div>
+
+          <div class="card-content">
+            <!-- Poster -->
+            <div class="poster-wrap">
+              <div class="poster-frame">
+                ${posterId
+                  ? `<img src="${driveImgUrl(posterId)}" alt="${ev.name}" />`
+                  : `<span class="poster-placeholder">No poster</span>`
+                }
+              </div>
+            </div>
+
+            <!-- Left column -->
+            <div class="event-inner">
+              <h1 class="event-name">${ev.name || '—'}</h1>
+
+              <div class="btn-row">
+                <button class="btn-primary">Enter Event &rarr;</button>
+                ${ev.rules
+                  ? `<a class="btn-outline" href="${ev.rules}" target="_blank">&#128218; Rulebook</a>`
+                  : ''}
+              </div>
+
+              <div class="meta-grid">
+                <div class="meta-item">
+                  <span class="meta-label">Team Size</span>
+                  <span>Min: ${ev.min_team_size ?? 1} | Max: ${ev.max_team_size ?? 1}</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Rounds</span>
+                  <span>${(ev.rounds || []).length}</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Start</span>
+                  <span>${fmtDate(ev.start_date)}</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">End</span>
+                  <span>${fmtDate(ev.end_date)}</span>
+                </div>
+                ${ev.registration_start_date
+                  ? `<div class="meta-item">
+                       <span class="meta-label">Reg Start</span>
+                       <span>${fmtDate(ev.registration_start_date)}</span>
+                     </div>`
+                  : ''}
+                ${ev.registration_end_date
+                  ? `<div class="meta-item">
+                       <span class="meta-label">Reg End</span>
+                       <span>${fmtDate(ev.registration_end_date)}</span>
+                     </div>`
+                  : ''}
+              </div>
+            </div><!-- .event-inner -->
+
+            <div class="divider"></div>
+
+            <!-- Description -->
+            ${ev.description ? `
+            <div class="section description">
+              <h2 class="section-title">Event Detail</h2>
+              ${ev.description.split('\n').map(line => `<p>${line}</p>`).join('')}
+            </div>` : ''}
+
+            <!-- Prizes -->
+            ${prizes.length ? `
+            <div class="section">
+              <h2 class="section-title">&#127942; Prizes</h2>
+              <div class="prizes">
+                ${prizes.map(([label, amt]) => `
+                  <div class="prize-card">
+                    <div class="prize-label">${label}</div>
+                    <div class="prize-amount">&#8377;${parseFloat(amt)}</div>
+                  </div>`).join('')}
+              </div>
+            </div>` : ''}
+
+            <!-- Rounds -->
+            ${(ev.rounds || []).length ? `
+            <div class="section">
+              <h2 class="section-title">Rounds &amp; Timeline</h2>
+              <div class="rounds">
+                ${ev.rounds.map(r => `
+                  <div class="round-item">
+                    <div class="round-dot"></div>
+                    <div class="round-name">${r.name}</div>
+                    <div class="round-meta">&#128197; ${fmtDateTime(r.start_time)}${r.location ? ' &middot; &#128205; ' + r.location : ''}</div>
+                    <div class="round-desc">${r.description || ''}</div>
+                  </div>`).join('')}
+              </div>
+            </div>` : ''}
+
+            <!-- FAQs -->
+            ${(ev.faqs || []).length ? `
+            <div class="section">
+              <h2 class="section-title">Frequently Asked Questions</h2>
+              <div class="faqs">
+                ${ev.faqs.map((f, i) => `
+                  <div class="faq-item">
+                    <button class="faq-q" onclick="toggleFaq(${i})">
+                      <span>${f.question}</span>
+                      <span id="faq-arrow-${i}">&#9660;</span>
+                    </button>
+                    <div class="faq-a" id="faq-a-${i}">${f.answer}</div>
+                  </div>`).join('')}
+              </div>
+            </div>` : ''}
+
+          </div><!-- .card-content -->
+        </div><!-- .card-body -->
+      `;
+    }
+
+    function toggleFaq(i) {
+      const el    = document.getElementById('faq-a-' + i);
+      const arrow = document.getElementById('faq-arrow-' + i);
+      const open  = el.classList.toggle('open');
+      arrow.innerHTML = open ? '&#9650;' : '&#9660;';
+    }
+  </script>
+</body>
+</html>

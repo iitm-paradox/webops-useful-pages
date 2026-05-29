@@ -4,117 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Paradox 2026 — Event Preview</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      background: #080818;
-      color: #fff;
-      font-family: Georgia, 'Times New Roman', serif;
-    }
-
-    .card {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      padding: 2.5rem;
-      width: 100%;
-      max-width: 540px;
-    }
-
-    h1 {
-      font-size: 1.6rem;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      margin-bottom: 0.4rem;
-      color: #e0c97f;
-    }
-
-    .subtitle {
-      font-family: sans-serif;
-      font-size: 0.85rem;
-      opacity: 0.5;
-      margin-bottom: 2rem;
-      line-height: 1.5;
-    }
-
-    .field { margin-bottom: 1.25rem; }
-
-    label {
-      display: block;
-      font-family: sans-serif;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      opacity: 0.5;
-      margin-bottom: 0.4rem;
-    }
-
-    select, input {
-      width: 100%;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: #fff;
-      padding: 0.7rem 1rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    select { font-family: sans-serif; cursor: pointer; }
-    input  { font-family: monospace; }
-    select option { background: #1a1a2e; color: #fff; }
-    select:focus, input:focus { border-color: rgba(255,255,255,0.35); }
-
-    .hint {
-      font-family: sans-serif;
-      font-size: 0.72rem;
-      opacity: 0.38;
-      margin-top: 0.35rem;
-      line-height: 1.5;
-    }
-
-    #btn-preview {
-      width: 100%;
-      margin-top: 0.75rem;
-      padding: 0.85rem;
-      border: none;
-      border-radius: 8px;
-      font-family: Georgia, serif;
-      font-size: 1rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: opacity 0.2s;
-      background: #521570;
-      color: #fdf7c7;
-    }
-    #btn-preview:hover { opacity: 0.85; }
-
-    .err {
-      font-family: sans-serif;
-      font-size: 0.8rem;
-      color: #f87171;
-      margin-top: 0.6rem;
-      display: none;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
-  <div class="card">
+<body class="index-body">
+  <div class="index-card">
     <h1>Paradox 2026</h1>
-    <p class="subtitle">
-      Event preview for department &amp; event heads.<br/>
+    <p class="index-subtitle">
+      Event preview for department &amp; event heads.<br />
       Shows exactly how the student-facing site will display events.
     </p>
 
     <div class="field">
-      <label>Department</label>
+      <label for="dept">Department</label>
       <select id="dept" onchange="updateBtn()">
         <option value="cultural">Culturals</option>
         <option value="technicals">Technicals</option>
@@ -122,34 +23,21 @@
       </select>
     </div>
 
-    <p class="err" id="err">CSV URL not configured for this department yet.</p>
+    <p class="index-err" id="err">CSV URL not configured for this department yet.</p>
     <button id="btn-preview" onclick="go()">Preview Culturals</button>
   </div>
 
+  <script src="shared.js"></script>
   <script>
-    const SHEET_CSVS = {
-      cultural:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vT6pxU5Zp1o0ZPI7vcDOH-a9T0SQvIL-Gk150FPiTm3ER0YyCsQ6xfILwTl3KK1A2ATaHgUzlf8ki78/pub?gid=744375888&single=true&output=csv',
-      technicals: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRJOZnntUinD8Q3mazF6P85QFw5C17mJA9qzsNQB3ks_uvkBFDlQHRct0XxPGJXsU4lvQCwqrwz9bJK/pub?gid=1367318563&single=true&output=csv',
-      sports:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vRoOAQ-Mvjo--ALp6XA4zhRmVGZ7v-AyS_bR7H49W4PCLnQ74QXP6_W2XvJTPEFlYeAbq9_gJtfnNAA/pub?gid=1720746419&single=true&output=csv',
-    };
-
-    const LABELS = {
-      cultural:   'Preview Culturals',
-      technicals: 'Preview Technicals',
-      sports:     'Preview Sports',
-    };
-    const COLORS = {
-      cultural:   { bg: '#521570', color: '#fdf7c7' },
-      technicals: { bg: '#23345C', color: '#dbdccd' },
-      sports:     { bg: '#5C1C15', color: '#f1d7c4' },
-    };
+    // Seed the button with the default (cultural) theme vars so the
+    // CSS-var-driven button colour is correct before any interaction.
+    applyTheme('cultural');
 
     function updateBtn() {
       const dept = document.getElementById('dept').value;
-      const btn  = document.getElementById('btn-preview');
-      btn.textContent = LABELS[dept];
-      btn.style.background = COLORS[dept].bg;
-      btn.style.color = COLORS[dept].color;
+      applyTheme(dept);
+      document.getElementById('btn-preview').textContent =
+        'Preview ' + { cultural: 'Culturals', technicals: 'Technicals', sports: 'Sports' }[dept];
     }
 
     function go() {
