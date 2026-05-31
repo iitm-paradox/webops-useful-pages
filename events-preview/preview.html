@@ -68,12 +68,15 @@
         events.forEach((ev, idx) => {
           const a = document.createElement('a');
           a.className = 'event-card-link' + (ev.is_approved ? '' : ' not-approved');
-          const ep = new URLSearchParams({
-            dept,
-            poster_url:   ev.poster_url,
-            details_json: ev.event_json,
+          const key = 'event_' + idx;
+          a.href = 'event.html?dept=' + encodeURIComponent(dept) + '&key=' + key;
+          a.addEventListener('click', function() {
+            sessionStorage.setItem(key, JSON.stringify({
+              poster_url:   ev.poster_url,
+              details_json: ev.event_json,
+              form_json:    ev.form_json,
+            }));
           });
-          a.href  = 'event.html?' + ep.toString();
           a.title = ev.name;
 
           // Staggered fade-in animation

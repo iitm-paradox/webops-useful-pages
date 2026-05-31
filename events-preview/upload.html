@@ -206,10 +206,13 @@
       if (!evRaw) { alert('Please paste event_json first.'); return; }
       try { JSON.parse(evRaw); } catch(e) { alert('event_json is not valid JSON:\n' + e.message); return; }
 
-      const params = new URLSearchParams({
-        dept: currentDept, poster_url: poster, details_json: evRaw
-      });
-      window.open('event.html?' + params.toString(), '_blank');
+      const key = 'upload_preview_' + Date.now();
+      sessionStorage.setItem(key, JSON.stringify({
+        poster_url:   poster,
+        details_json: evRaw,
+        form_json:    document.getElementById('form-json').value.trim(),
+      }));
+      window.open('event.html?dept=' + encodeURIComponent(currentDept) + '&key=' + key, '_blank');
     }
 
     const AI_PROMPT = `You are helping create JSON data for a college fest event at IIT Madras (Paradox 2026).

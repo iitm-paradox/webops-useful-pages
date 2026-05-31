@@ -29,22 +29,35 @@
 
   <script src="shared.js"></script>
   <script>
-    const p            = new URLSearchParams(location.search);
-    const dept         = p.get('dept')         || 'cultural';
-    const posterUrl    = p.get('poster_url')   || '';
-    const detailsJson  = p.get('details_json') || '';
-
+    const p    = new URLSearchParams(location.search);
+    const dept = p.get('dept') || 'cultural';
     applyTheme(dept);
+
+    // Data comes via sessionStorage (keyed by ?key=) or directly via URL params
+    let posterUrl   = '';
+    let detailsJson = '';
+
+    const storageKey = p.get('key');
+    if (storageKey) {
+      try {
+        const stored = JSON.parse(sessionStorage.getItem(storageKey) || '{}');
+        posterUrl   = stored.poster_url   || '';
+        detailsJson = stored.details_json || '';
+      } catch(e) {}
+    } else {
+      posterUrl   = p.get('poster_url')   || '';
+      detailsJson = p.get('details_json') || '';
+    }
 
     if (!detailsJson) {
       document.getElementById('root').innerHTML =
-        '<p class="event-err">No event data yet — run the Approve script in the Sheet first.</p>';
+        '<p class="event-err">No event data — go back and click an event card.</p>';
     } else {
       try {
         render(JSON.parse(detailsJson));
       } catch(e) {
         document.getElementById('root').innerHTML =
-          '<p class="event-err">Failed to parse event details JSON.</p>';
+          '<p class="event-err">Failed to parse event details JSON: ' + e.message + '</p>';
       }
     }
 
@@ -76,7 +89,7 @@
               <h1 class="event-name">${ev.name || '—'}</h1>
 
               <div class="btn-row">
-                <button class="btn-primary">Enter Event &rarr;</button>
+                <button class="btn-primary" onclick="openForm()">Enter Event &rarr;</button>
                 ${ev.rules
                   ? `<a class="btn-outline" href="${ev.rules}" target="_blank">&#128218; Rulebook</a>`
                   : ''}
@@ -178,6 +191,89 @@
       const open  = el.classList.toggle('open');
       arrow.innerHTML = open ? '&#9650;' : '&#9660;';
     }
+
+    // ── Form modal ────────────────────────────────────────────────────────────
+    let formData = null;
+
+    // Load form_json from sessionStorage alongside event data
+    if (storageKey) {
+      try {
+        const stored = JSON.parse(sessionStorage.getItem(storageKey) || '{}');
+        if (stored.form_json) formData = JSON.parse(stored.form_json);
+      } catch(e) {}
+    }
+
+    function openForm() {
+      if (!formData || !formData.blocks) {
+        alert('No registration form available for this event yet.');
+        return;
+      }
+      const modal = document.getElementById('form-modal');
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      renderForm(formData);
+    }
+
+    function closeForm() {
+      document.getElementById('form-modal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    function renderForm(form) {
+      const container = document.getElementById('form-fields');
+      container.innerHTML = form.blocks.map(block => `
+        <div style="margin-bottom:1.5rem;">
+          ${block.title ? `<h3 style="font-family:Georgia,serif;font-size:1.1rem;margin-bottom:1rem;opacity:0.8;">${block.title}</h3>` : ''}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            ${(block.elements || []).map(el => renderElement(el)).join('')}
+          </div>
+        </div>`).join('');
+    }
+
+    function renderElement(el) {
+      const full = ['textarea','radio','checkbox'].includes(el.inputType) || true;
+      const span = full ? 'grid-column:1/-1;' : '';
+      const label = `<label style="display:block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;opacity:0.5;margin-bottom:0.35rem;">${el.label}${el.element?.required ? ' *' : ''}</label>`;
+      const baseInput = `background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:0.6rem 0.85rem;border-radius:6px;font-size:0.9rem;width:100%;outline:none;`;
+
+      if (el.inputType === 'textarea') {
+        return `<div style="${span}margin-bottom:0.5rem;">${label}<textarea style="${baseInput}min-height:80px;resize:vertical;" placeholder="${el.element?.placeholder||''}"></textarea></div>`;
+      }
+      if (el.inputType === 'select') {
+        const opts = (el.element?.inputs || []).map(o => `<option>${o}</option>`).join('');
+        return `<div style="${span}margin-bottom:0.5rem;">${label}<select style="${baseInput}cursor:pointer;"><option value="">Select...</option>${opts}</select></div>`;
+      }
+      if (el.inputType === 'radio') {
+        const opts = (el.element?.inputs || []).map(o =>
+          `<label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;cursor:pointer;margin-bottom:0.4rem;"><input type="radio" name="${el.name}" style="accent-color:#e0c97f;"/> ${o}</label>`
+        ).join('');
+        return `<div style="${span}margin-bottom:0.5rem;">${label}${opts}</div>`;
+      }
+      if (el.inputType === 'checkbox') {
+        const opts = (el.element?.inputs || []).map(o =>
+          `<label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;cursor:pointer;margin-bottom:0.4rem;"><input type="checkbox" style="accent-color:#e0c97f;"/> ${o}</label>`
+        ).join('');
+        return `<div style="${span}margin-bottom:0.5rem;">${label}${opts}</div>`;
+      }
+      return `<div style="${span}margin-bottom:0.5rem;">${label}<input type="${el.inputType||'text'}" style="${baseInput}" placeholder="${el.element?.placeholder||''}"/></div>`;
+    }
   </script>
+
+  <!-- Form modal -->
+  <div id="form-modal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:#1a0a2e;border:1px solid rgba(255,255,255,0.15);border-radius:16px;width:100%;max-width:680px;max-height:88vh;display:flex;flex-direction:column;position:relative;">
+      <!-- Header -->
+      <div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <h2 style="font-family:Georgia,serif;font-size:1.3rem;letter-spacing:0.1em;text-transform:uppercase;">Event Registration</h2>
+        <button onclick="closeForm()" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.5rem;cursor:pointer;line-height:1;">&times;</button>
+      </div>
+      <!-- Fields -->
+      <div id="form-fields" style="flex:1;overflow-y:auto;padding:1.5rem;"></div>
+      <!-- Footer note -->
+      <div style="padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
+        <p style="font-size:0.78rem;opacity:0.4;text-align:center;">This is a preview — form submission is not active here.</p>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

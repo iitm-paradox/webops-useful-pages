@@ -618,10 +618,16 @@
     }
 
     function previewEvent() {
-      const evJSON = document.getElementById('out-event').textContent;
-      const poster = val('ev-poster');
-      const params = new URLSearchParams({ dept: 'cultural', poster_url: poster, details_json: evJSON });
-      window.open('event.html?' + params.toString(), '_blank');
+      const evJSON  = document.getElementById('out-event').textContent;
+      const frmJSON = document.getElementById('out-form').textContent;
+      const poster  = val('ev-poster');
+      const key     = 'builder_preview_' + Date.now();
+      sessionStorage.setItem(key, JSON.stringify({
+        poster_url:   poster,
+        details_json: evJSON,
+        form_json:    frmJSON,
+      }));
+      window.open('event.html?dept=cultural&key=' + key, '_blank');
     }
 
     // ── AI mode ────────────────────────────────────────────────────────────────
