@@ -61,9 +61,9 @@ const THEMES = {
 
 /** Published Google Sheets CSV URLs — one per department. */
 const SHEET_CSVS = {
-  cultural:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vT6pxU5Zp1o0ZPI7vcDOH-a9T0SQvIL-Gk150FPiTm3ER0YyCsQ6xfILwTl3KK1A2ATaHgUzlf8ki78/pub?gid=744375888&single=true&output=csv',
-  technicals: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRJOZnntUinD8Q3mazF6P85QFw5C17mJA9qzsNQB3ks_uvkBFDlQHRct0XxPGJXsU4lvQCwqrwz9bJK/pub?gid=1367318563&single=true&output=csv',
-  sports:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vRoOAQ-Mvjo--ALp6XA4zhRmVGZ7v-AyS_bR7H49W4PCLnQ74QXP6_W2XvJTPEFlYeAbq9_gJtfnNAA/pub?gid=1720746419&single=true&output=csv',
+  cultural:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vT6pxU5Zp1o0ZPI7vcDOH-a9T0SQvIL-Gk150FPiTm3ER0YyCsQ6xfILwTl3KK1A2ATaHgUzlf8ki78/pub?gid=1260034043&single=true&output=csv',
+  technicals: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRJOZnntUinD8Q3mazF6P85QFw5C17mJA9qzsNQB3ks_uvkBFDlQHRct0XxPGJXsU4lvQCwqrwz9bJK/pub?gid=178859190&single=true&output=csv',
+  sports:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vRoOAQ-Mvjo--ALp6XA4zhRmVGZ7v-AyS_bR7H49W4PCLnQ74QXP6_W2XvJTPEFlYeAbq9_gJtfnNAA/pub?gid=92165573&single=true&output=csv',
 };
 
 /* ── Theme application ───────────────────────────────────────────── */
