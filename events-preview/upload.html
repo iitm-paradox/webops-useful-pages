@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Preview & Share — Paradox 2026</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    body { background: #080818; color: #fff; font-family: sans-serif; min-height: 100vh; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 6rem 1.5rem 4rem; }
+
+    h1 { font-family: Georgia, serif; font-size: 1.8rem; letter-spacing: 0.15em;
+         text-transform: uppercase; color: #e0c97f; margin-bottom: 0.25rem; }
+    .sub { opacity: 0.45; font-size: 0.85rem; margin-bottom: 2rem; line-height: 1.5; }
+
+    .field-group { margin-bottom: 1.25rem; }
+    .field-group label { display: block; font-size: 0.72rem; text-transform: uppercase;
+                         letter-spacing: 0.12em; opacity: 0.5; margin-bottom: 0.35rem; }
+    .field-group input, .field-group select, .field-group textarea {
+      width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      color: #fff; padding: 0.65rem 0.9rem; border-radius: 6px; font-size: 0.9rem;
+      outline: none; transition: border-color 0.2s;
+    }
+    .field-group select { font-family: sans-serif; cursor: pointer; }
+    .field-group select option { background: #1a1a2e; }
+    .field-group input:focus, .field-group select:focus, .field-group textarea:focus {
+      border-color: rgba(255,255,255,0.35);
+    }
+    textarea.json-area { font-family: monospace; font-size: 0.82rem; min-height: 180px; resize: vertical; }
+    textarea.valid   { border-color: #4ade80 !important; }
+    textarea.invalid { border-color: #f87171 !important; }
+
+    .json-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    @media (max-width: 640px) { .json-grid { grid-template-columns: 1fr; } }
+
+    .char-count { font-size: 0.72rem; opacity: 0.35; text-align: right; margin-top: 0.25rem; }
+    .err-inline { font-size: 0.78rem; color: #f87171; margin-top: 0.25rem; min-height: 1.1rem; }
+
+    .poster-preview { margin-top: 0.5rem; height: 120px; width: 90px;
+                      object-fit: cover; border-radius: 6px;
+                      border: 1px solid rgba(255,255,255,0.15); display: none; }
+
+    .dept-preview { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .dept-btn {
+      padding: 0.45rem 1.1rem; border-radius: 999px; border: 2px solid rgba(255,255,255,0.15);
+      background: transparent; color: rgba(255,255,255,0.5); font-size: 0.82rem;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .dept-btn.active-cultural   { border-color: #7B3FA8; color: #e0c97f; background: rgba(123,63,168,0.2); }
+    .dept-btn.active-technicals { border-color: #C4580F; color: #DBDCCD; background: rgba(196,88,15,0.2); }
+    .dept-btn.active-sports     { border-color: #A63020; color: #F1D7C4; background: rgba(166,48,32,0.2); }
+
+    .preview-btn {
+      width: 100%; padding: 0.85rem; border: none; border-radius: 8px;
+      font-family: Georgia, serif; font-size: 1rem; letter-spacing: 0.15em;
+      text-transform: uppercase; cursor: pointer; margin-top: 0.5rem;
+      background: #3F0A58; color: #fdf7c7; transition: opacity 0.2s;
+    }
+    .preview-btn:hover { opacity: 0.85; }
+
+    .divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0; }
+
+    /* AI prompt section */
+    .prompt-section { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+                      border-radius: 10px; padding: 1.25rem; }
+    .prompt-title { font-size: 0.85rem; font-weight: bold; margin-bottom: 0.5rem;
+                    text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; }
+    .prompt-desc  { font-size: 0.82rem; opacity: 0.5; line-height: 1.5; margin-bottom: 0.75rem; }
+    .copy-btn {
+      padding: 0.4rem 1rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.07); color: #fff; font-size: 0.8rem; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.14); }
+    .how-to { margin-top: 1rem; }
+    .how-to ol { padding-left: 1.25rem; opacity: 0.6; font-size: 0.82rem; line-height: 1.9; }
+
+    .builder-link {
+      display: inline-block; margin-top: 0.75rem; color: #e0c97f; font-size: 0.85rem;
+      text-decoration: none; opacity: 0.8;
+    }
+    .builder-link:hover { opacity: 1; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div id="bg"><div id="bg-gradient" style="background:linear-gradient(180deg,#0d0020 0%,#080818 100%);position:absolute;inset:0;"></div></div>
+
+  <div class="top-bar">
+    <a class="back-btn" href="index.html">&#8592; Back</a>
+    <span class="preview-badge">Preview &amp; Share</span>
+  </div>
+
+  <div class="wrap">
+    <h1>Preview &amp; Share</h1>
+    <p class="sub">
+      Paste your event and form JSONs here to preview how they'll look on the student site.
+      Once you're happy, send both JSONs to your department head to publish.
+    </p>
+
+    <!-- Department selector -->
+    <div class="field-group">
+      <label>Your Department</label>
+      <div class="dept-preview">
+        <button class="dept-btn active-cultural" onclick="selectDept('cultural',this)">Culturals</button>
+        <button class="dept-btn" onclick="selectDept('technicals',this)">Technicals</button>
+        <button class="dept-btn" onclick="selectDept('sports',this)">Sports</button>
+      </div>
+    </div>
+
+    <!-- Poster URL -->
+    <div class="field-group">
+      <label>Poster / Header Image URL</label>
+      <input type="url" id="poster-url" placeholder="https://lh3.googleusercontent.com/d/..."
+        oninput="previewPoster()"/>
+      <img id="poster-img" class="poster-preview" alt="Poster preview"/>
+    </div>
+
+    <!-- JSON inputs -->
+    <div class="json-grid">
+      <div>
+        <div class="field-group">
+          <label>event_json</label>
+          <textarea id="event-json" class="json-area" placeholder='Paste event_json here...'
+            oninput="validate('event')"></textarea>
+          <div class="char-count" id="event-chars">0 characters</div>
+          <div class="err-inline" id="event-err"></div>
+        </div>
+      </div>
+      <div>
+        <div class="field-group">
+          <label>form_json</label>
+          <textarea id="form-json" class="json-area" placeholder='Paste form_json here...'
+            oninput="validate('form')"></textarea>
+          <div class="char-count" id="form-chars">0 characters</div>
+          <div class="err-inline" id="form-err"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="preview-btn" onclick="openPreview()">Preview Event →</button>
+
+    <hr class="divider"/>
+
+    <!-- AI prompt + how-to -->
+    <div class="prompt-section">
+      <div class="prompt-title">Don't have the JSONs yet?</div>
+      <div class="prompt-desc">
+        Use the JSON Builder to create them with a guided form, or use AI to generate them instantly.
+      </div>
+      <button class="copy-btn" onclick="copyPrompt()">Copy AI Prompt</button>
+      <a class="builder-link" href="builder.html">Or use the JSON Builder →</a>
+
+      <div class="how-to">
+        <ol>
+          <li>Copy the AI prompt above</li>
+          <li>Paste it into ChatGPT or Claude</li>
+          <li>Describe your event in detail (name, dates, rounds, prizes, registration form fields)</li>
+          <li>Copy the two JSONs it gives you back here</li>
+          <li>Click Preview to check how it looks</li>
+          <li>Send both JSONs to your department head</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    let currentDept = 'cultural';
+
+    function selectDept(dept, btn) {
+      currentDept = dept;
+      document.querySelectorAll('.dept-btn').forEach(b => {
+        b.className = 'dept-btn';
+      });
+      btn.className = 'dept-btn active-' + dept;
+    }
+
+    function previewPoster() {
+      const url = document.getElementById('poster-url').value.trim();
+      const img = document.getElementById('poster-img');
+      if (url) { img.src = url; img.style.display = 'block'; }
+      else      { img.style.display = 'none'; }
+    }
+
+    function validate(type) {
+      const ta   = document.getElementById(type + '-json');
+      const err  = document.getElementById(type + '-err');
+      const cnt  = document.getElementById(type + '-chars');
+      const text = ta.value;
+      cnt.textContent = text.length.toLocaleString() + ' characters';
+      if (!text.trim()) { ta.className = 'json-area'; err.textContent = ''; return; }
+      try {
+        JSON.parse(text);
+        ta.classList.add('valid'); ta.classList.remove('invalid');
+        err.textContent = '';
+      } catch(e) {
+        ta.classList.add('invalid'); ta.classList.remove('valid');
+        err.textContent = e.message;
+      }
+    }
+
+    function openPreview() {
+      const evRaw  = document.getElementById('event-json').value.trim();
+      const poster = document.getElementById('poster-url').value.trim();
+
+      if (!evRaw) { alert('Please paste event_json first.'); return; }
+      try { JSON.parse(evRaw); } catch(e) { alert('event_json is not valid JSON:\n' + e.message); return; }
+
+      const params = new URLSearchParams({
+        dept: currentDept, poster_url: poster, details_json: evRaw
+      });
+      window.open('event.html?' + params.toString(), '_blank');
+    }
+
+    const AI_PROMPT = `You are helping create JSON data for a college fest event at IIT Madras (Paradox 2026).
+
+I need TWO JSON objects:
+
+=== event_json format ===
+{
+  "id": null, "name": "Event Name",
+  "description": "Full event description",
+  "is_approved": false,
+  "department": { "id": null, "name": "Culturals OR Technicals OR Sports" },
+  "open": false,
+  "max_team_size": 1, "min_team_size": 1, "max_participants": null,
+  "header_image": null,
+  "start_date": "2026-06-10T09:00:00+05:30",
+  "end_date": "2026-06-10T18:00:00+05:30",
+  "registration_start_date": "2026-05-01T00:00:00+05:30",
+  "registration_end_date": "2026-06-08T23:59:00+05:30",
+  "fee": 0, "location": "CLT", "location_link": null,
+  "rules": null,
+  "first_prize_amount": "0.00", "second_prize_amount": "0.00", "third_prize_amount": "0.00",
+  "is_team_event": false,
+  "rounds": [{ "id": 1, "event": null, "name": "Round Name",
+    "start_time": "2026-06-10T09:00:00+05:30", "end_time": "2026-06-10T12:00:00+05:30",
+    "location": "Venue", "location_link": "", "description": "Round description" }],
+  "faqs": [{ "id": 1, "question": "Question?", "answer": "Answer." }],
+  "sponsors": [], "some_dudes": [], "social_links": []
+}
+
+=== form_json format ===
+{
+  "id": "form_slug", "bg_img": "", "name": "Event Name", "desc": "", "published": false,
+  "blocks": [{
+    "id": 1, "form": "form_slug", "position": 1, "title": "Participant Details",
+    "elements": [
+      { "id": 1, "position": 1, "block_id": 1, "label": "Full Name", "name": "full_name",
+        "inputType": "text", "show": true,
+        "element": { "id": 1, "value": "", "required": true, "placeholder": "Enter your full name", "autocomplete": true } },
+      { "id": 2, "position": 2, "block_id": 1, "label": "Gender", "name": "gender",
+        "inputType": "select", "show": true,
+        "element": { "id": 2, "value": "", "required": true, "inputs": ["Male","Female","Other"] } }
+    ]
+  }]
+}
+
+inputType can be: text, email, tel, number, textarea, select, radio, checkbox, url, date
+
+Now create both JSONs for:
+[DESCRIBE YOUR EVENT HERE]
+
+Return ONLY the two JSON objects labelled "event_json:" and "form_json:". No extra text.`;
+
+    function copyPrompt() {
+      navigator.clipboard.writeText(AI_PROMPT)
+        .then(() => alert('AI prompt copied! Paste it into ChatGPT or Claude.'));
+    }
+  </script>
+</body>
+</html>

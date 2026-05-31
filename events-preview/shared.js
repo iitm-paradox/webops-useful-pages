@@ -116,25 +116,26 @@ function driveFileUrl(id) {
 
 /**
  * Parse a published Google Sheet CSV into an array of event objects.
- * Columns: event_name(0) | is_approved(1) | poster_id(2) |
- *          details_json(3) | form_json(4) | event_head_email(5)
- * All rows are returned — preview shows approved and unapproved events.
+ * Columns: event_name(0) | event_id(1) | is_approved(2) | poster_url(3) |
+ *          event_json(4) | form_json(5)
+ * All rows returned — preview shows approved and unapproved events.
  *
- * @param {string} csv - raw CSV text
- * @returns {Array<{name, is_approved, poster_id, details_json, form_json}>}
+ * @param {string} csv
+ * @returns {Array<{name, event_id, is_approved, poster_url, event_json, form_json}>}
  */
 function parseSheet(csv) {
   const lines  = csv.trim().split('\n');
   const events = [];
   for (let i = 1; i < lines.length; i++) {
     const cols = parseCSVLine(lines[i]);
-    if (!cols || cols.length < 1 || !cols[0].trim()) continue;
+    if (!cols || !cols[0].trim()) continue;
     events.push({
-      name:         (cols[0] || '').trim(),
-      is_approved:  (cols[1] || '').trim().toUpperCase() === 'TRUE',
-      poster_id:    (cols[2] || '').trim(),
-      details_json: (cols[3] || '').trim(),
-      form_json:    (cols[4] || '').trim(),
+      name:        (cols[0] || '').trim(),
+      event_id:    (cols[1] || '').trim(),
+      is_approved: (cols[2] || '').trim().toUpperCase() === 'TRUE',
+      poster_url:  (cols[3] || '').trim(),
+      event_json:  (cols[4] || '').trim(),
+      form_json:   (cols[5] || '').trim(),
     });
   }
   return events;

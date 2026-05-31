@@ -31,7 +31,7 @@
   <script>
     const p            = new URLSearchParams(location.search);
     const dept         = p.get('dept')         || 'cultural';
-    const posterId     = p.get('poster_id')    || '';
+    const posterUrl    = p.get('poster_url')   || '';
     const detailsJson  = p.get('details_json') || '';
 
     applyTheme(dept);
@@ -64,8 +64,8 @@
             <!-- Poster -->
             <div class="poster-wrap">
               <div class="poster-frame">
-                ${posterId
-                  ? `<img src="${driveImgUrl(posterId)}" alt="${ev.name}" />`
+                ${posterUrl
+                  ? `<img src="${posterUrl}" alt="${ev.name}" />`
                   : `<span class="poster-placeholder">No poster</span>`
                 }
               </div>

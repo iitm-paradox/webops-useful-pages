@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JSON Builder — Paradox 2026</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    /* ── Builder-specific styles ── */
+    body { background: #080818; color: #fff; font-family: sans-serif; min-height: 100vh; }
+
+    .builder-wrap { max-width: 900px; margin: 0 auto; padding: 6rem 1.5rem 4rem; }
+
+    h1 { font-family: Georgia, serif; font-size: 1.8rem; letter-spacing: 0.15em;
+         text-transform: uppercase; color: #e0c97f; margin-bottom: 0.25rem; }
+    .sub { opacity: 0.45; font-size: 0.85rem; margin-bottom: 2rem; }
+
+    /* ── Mode toggle ── */
+    .mode-toggle { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .mode-btn {
+      padding: 0.5rem 1.25rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.15);
+      font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em;
+      cursor: pointer; background: transparent; color: rgba(255,255,255,0.5);
+      transition: all 0.2s;
+    }
+    .mode-btn.active { background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.3); }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: 0; margin-bottom: 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .tab-btn {
+      padding: 0.65rem 1.5rem; border: none; background: transparent;
+      color: rgba(255,255,255,0.45); font-size: 0.9rem; cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s;
+    }
+    .tab-btn.active { color: #e0c97f; border-bottom-color: #e0c97f; }
+
+    /* ── Field groups ── */
+    .panel { display: none; padding-top: 1.5rem; }
+    .panel.active { display: block; }
+
+    .field-group { margin-bottom: 1.25rem; }
+    .field-group label { display: block; font-size: 0.72rem; text-transform: uppercase;
+                         letter-spacing: 0.12em; opacity: 0.5; margin-bottom: 0.35rem; }
+    .field-group input, .field-group textarea, .field-group select {
+      width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      color: #fff; padding: 0.6rem 0.85rem; border-radius: 6px; font-size: 0.9rem;
+      outline: none; transition: border-color 0.2s;
+    }
+    .field-group input:focus, .field-group textarea:focus, .field-group select:focus {
+      border-color: rgba(255,255,255,0.35);
+    }
+    .field-group select option { background: #1a1a2e; }
+    .field-group textarea { resize: vertical; min-height: 80px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    @media (max-width: 600px) { .field-row, .field-row-3 { grid-template-columns: 1fr; } }
+
+    .checkbox-field { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.25rem; }
+    .checkbox-field input[type=checkbox] { width: 18px; height: 18px; accent-color: #e0c97f; }
+    .checkbox-field label { font-size: 0.9rem; opacity: 0.8; margin: 0; text-transform: none; letter-spacing: 0; }
+
+    /* ── Repeatable sections (rounds, FAQs, blocks, elements) ── */
+    .section-header { display: flex; align-items: center; justify-content: space-between;
+                      margin: 1.75rem 0 0.75rem; }
+    .section-title-text { font-size: 0.95rem; font-weight: bold; opacity: 0.8; text-transform: uppercase;
+                           letter-spacing: 0.1em; }
+    .add-btn {
+      padding: 0.35rem 0.9rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.07); color: #fff; font-size: 0.8rem; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .add-btn:hover { background: rgba(255,255,255,0.14); }
+
+    .repeatable-item {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 1rem 1rem 0.75rem; margin-bottom: 0.75rem; position: relative;
+    }
+    .item-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+    .item-label { font-size: 0.78rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.1em; }
+    .remove-btn {
+      background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+      color: #f87171; padding: 0.25rem 0.65rem; border-radius: 5px; font-size: 0.75rem;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .remove-btn:hover { background: rgba(239,68,68,0.3); }
+
+    /* ── AI mode ── */
+    .ai-panel { display: none; padding-top: 1.5rem; }
+    .ai-panel.active { display: block; }
+    .prompt-box {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 1rem; font-size: 0.82rem; line-height: 1.6;
+      white-space: pre-wrap; color: rgba(255,255,255,0.75); max-height: 300px; overflow-y: auto;
+      margin-bottom: 0.5rem;
+    }
+    .copy-prompt-btn {
+      padding: 0.4rem 1rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.07); color: #fff; font-size: 0.8rem; cursor: pointer;
+      margin-bottom: 1.5rem;
+    }
+    .ai-input { width: 100%; height: 200px; resize: vertical; }
+
+    /* ── Output panel ── */
+    .output-panel {
+      margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem;
+    }
+    .output-title { font-size: 0.95rem; font-weight: bold; opacity: 0.7;
+                    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+    .output-block { margin-bottom: 1.5rem; }
+    .output-block-label { font-size: 0.72rem; opacity: 0.5; text-transform: uppercase;
+                          letter-spacing: 0.1em; margin-bottom: 0.4rem; }
+    .output-code {
+      background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; padding: 0.85rem; font-family: monospace; font-size: 0.78rem;
+      max-height: 160px; overflow-y: auto; white-space: pre-wrap;
+      color: rgba(255,255,255,0.7); margin-bottom: 0.5rem;
+    }
+    .output-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .action-btn {
+      padding: 0.4rem 1rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.07); color: #fff; font-size: 0.8rem; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .action-btn:hover { background: rgba(255,255,255,0.14); }
+    .action-btn.primary { background: #3F0A58; border-color: #7B3FA8; }
+    .action-btn.primary:hover { background: #521570; }
+
+    .err-msg { color: #f87171; font-size: 0.82rem; margin-top: 0.5rem; }
+    .ok-msg  { color: #4ade80; font-size: 0.82rem; margin-top: 0.5rem; }
+
+    /* element type extra options */
+    .options-field { display: none; }
+    .options-field.visible { display: block; }
+  </style>
+</head>
+<body>
+  <div id="bg"><div id="bg-gradient" style="background:linear-gradient(180deg,#0d0020 0%,#080818 100%);position:absolute;inset:0;"></div></div>
+
+  <div class="top-bar">
+    <a class="back-btn" href="index.html">&#8592; Back</a>
+    <span class="preview-badge">JSON Builder</span>
+  </div>
+
+  <div class="builder-wrap">
+    <h1>JSON Builder</h1>
+    <p class="sub">Build event and form JSONs to share with your department head.</p>
+
+    <!-- Mode toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" onclick="setMode('ui')">UI Builder</button>
+      <button class="mode-btn" onclick="setMode('ai')">AI Assistant</button>
+    </div>
+
+    <!-- ── UI MODE ── -->
+    <div id="ui-mode">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('event')">Event Details</button>
+        <button class="tab-btn" onclick="switchTab('form')">Registration Form</button>
+      </div>
+
+      <!-- Event Details panel -->
+      <div id="panel-event" class="panel active">
+        <div class="field-group">
+          <label>Event Name *</label>
+          <input type="text" id="ev-name" placeholder="e.g. Squid Games" oninput="syncName();buildJSON()"/>
+        </div>
+        <div class="field-group">
+          <label>Description</label>
+          <textarea id="ev-desc" rows="4" placeholder="Describe the event..." oninput="buildJSON()"></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>Start Date &amp; Time</label>
+            <input type="datetime-local" id="ev-start" oninput="buildJSON()"/>
+          </div>
+          <div class="field-group">
+            <label>End Date &amp; Time</label>
+            <input type="datetime-local" id="ev-end" oninput="buildJSON()"/>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>Registration Start</label>
+            <input type="datetime-local" id="ev-reg-start" oninput="buildJSON()"/>
+          </div>
+          <div class="field-group">
+            <label>Registration End</label>
+            <input type="datetime-local" id="ev-reg-end" oninput="buildJSON()"/>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>Location</label>
+            <input type="text" id="ev-location" placeholder="e.g. CLT" oninput="buildJSON()"/>
+          </div>
+          <div class="field-group">
+            <label>Location Link (URL)</label>
+            <input type="url" id="ev-location-link" placeholder="https://maps.google.com/..." oninput="buildJSON()"/>
+          </div>
+        </div>
+        <div class="field-row-3">
+          <div class="field-group">
+            <label>Min Team Size</label>
+            <input type="number" id="ev-min-team" min="1" value="1" oninput="buildJSON()"/>
+          </div>
+          <div class="field-group">
+            <label>Max Team Size</label>
+            <input type="number" id="ev-max-team" min="1" value="1" oninput="buildJSON()"/>
+          </div>
+          <div class="field-group">
+            <label>Max Participants</label>
+            <input type="number" id="ev-max-part" placeholder="Leave blank if unlimited" oninput="buildJSON()"/>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>Entry Fee (₹)</label>
+            <input type="number" id="ev-fee" value="0" min="0" oninput="buildJSON()"/>
+          </div>
+          <div class="field-group">
+            <label>Rulebook URL</label>
+            <input type="url" id="ev-rules" placeholder="Google Drive / Docs link" oninput="buildJSON()"/>
+          </div>
+        </div>
+        <div class="field-row-3">
+          <div class="field-group">
+            <label>1st Prize (₹)</label>
+            <input type="number" id="ev-prize1" value="0" min="0" oninput="buildJSON()"/>
+          </div>
+          <div class="field-group">
+            <label>2nd Prize (₹)</label>
+            <input type="number" id="ev-prize2" value="0" min="0" oninput="buildJSON()"/>
+          </div>
+          <div class="field-group">
+            <label>3rd Prize (₹)</label>
+            <input type="number" id="ev-prize3" value="0" min="0" oninput="buildJSON()"/>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Poster / Header Image URL</label>
+          <input type="url" id="ev-poster" placeholder="https://lh3.googleusercontent.com/d/..." oninput="buildJSON()"/>
+        </div>
+        <div class="checkbox-field">
+          <input type="checkbox" id="ev-team-event" onchange="buildJSON()"/>
+          <label for="ev-team-event">This is a team event</label>
+        </div>
+
+        <!-- Rounds -->
+        <div class="section-header">
+          <span class="section-title-text">Rounds</span>
+          <button class="add-btn" onclick="addRound()">+ Add Round</button>
+        </div>
+        <div id="rounds-list"></div>
+
+        <!-- FAQs -->
+        <div class="section-header">
+          <span class="section-title-text">FAQs</span>
+          <button class="add-btn" onclick="addFAQ()">+ Add FAQ</button>
+        </div>
+        <div id="faqs-list"></div>
+      </div>
+
+      <!-- Form panel -->
+      <div id="panel-form" class="panel">
+        <p style="opacity:0.5;font-size:0.85rem;margin-bottom:1.5rem;">
+          Build the registration form for this event. Each block is a section, each element is a field.
+        </p>
+        <div class="field-group">
+          <label>Form Name</label>
+          <input type="text" id="form-name" placeholder="Auto-filled from event name" oninput="buildJSON()"/>
+        </div>
+        <div class="section-header">
+          <span class="section-title-text">Blocks (Sections)</span>
+          <button class="add-btn" onclick="addBlock()">+ Add Block</button>
+        </div>
+        <div id="blocks-list"></div>
+      </div>
+    </div>
+
+    <!-- ── AI MODE ── -->
+    <div id="ai-mode" class="ai-panel">
+      <p style="opacity:0.6;font-size:0.88rem;margin-bottom:1rem;">
+        Copy the prompt below, paste it into ChatGPT or Claude, describe your event, and paste the output back here.
+      </p>
+      <div class="prompt-box" id="ai-prompt-box"></div>
+      <button class="copy-prompt-btn" onclick="copyPrompt()">Copy Prompt</button>
+
+      <div class="field-group">
+        <label>Paste AI output here (event_json)</label>
+        <textarea class="ai-input" id="ai-event-input" placeholder='Paste the event JSON from AI here...' oninput="validateAIInput('event')"></textarea>
+        <div id="ai-event-err"></div>
+      </div>
+      <div class="field-group">
+        <label>Paste AI output here (form_json)</label>
+        <textarea class="ai-input" id="ai-form-input" placeholder='Paste the form JSON from AI here...' oninput="validateAIInput('form')"></textarea>
+        <div id="ai-form-err"></div>
+      </div>
+      <button class="action-btn primary" onclick="useAIOutput()" style="margin-bottom:1rem;">Use this JSON →</button>
+    </div>
+
+    <!-- ── Output panel (always visible) ── -->
+    <div class="output-panel">
+      <div class="output-title">Generated JSON</div>
+      <div class="output-block">
+        <div class="output-block-label">event_json</div>
+        <div class="output-code" id="out-event">{}</div>
+        <div class="output-actions">
+          <button class="action-btn" onclick="copyOutput('event')">Copy</button>
+          <button class="action-btn" onclick="downloadOutput('event')">Download</button>
+          <button class="action-btn primary" onclick="previewEvent()">Preview Event</button>
+        </div>
+      </div>
+      <div class="output-block">
+        <div class="output-block-label">form_json</div>
+        <div class="output-code" id="out-form">{}</div>
+        <div class="output-actions">
+          <button class="action-btn" onclick="copyOutput('form')">Copy</button>
+          <button class="action-btn" onclick="downloadOutput('form')">Download</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    // ── State ──────────────────────────────────────────────────────────────────
+    let rounds  = [];
+    let faqs    = [];
+    let blocks  = [];  // [{id, title, elements:[{id,label,name,inputType,required,options}]}]
+    let roundId = 0, faqId = 0, blockId = 0, elId = 0;
+    let currentMode = 'ui';
+    let currentTab  = 'event';
+
+    // ── Mode / Tab switching ────────────────────────────────────────────────────
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('ui-mode').style.display = mode === 'ui' ? '' : 'none';
+      document.getElementById('ai-mode').classList.toggle('active', mode === 'ai');
+      document.querySelectorAll('.mode-btn').forEach((b, i) => {
+        b.classList.toggle('active', (i === 0) === (mode === 'ui'));
+      });
+      if (mode === 'ai') renderAIPrompt();
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-' + tab).classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach((b, i) => {
+        b.classList.toggle('active', (i === 0) === (tab === 'event'));
+      });
+    }
+
+    function syncName() {
+      const n = document.getElementById('ev-name').value;
+      const fn = document.getElementById('form-name');
+      if (!fn.value || fn.dataset.auto === '1') { fn.value = n; fn.dataset.auto = '1'; }
+    }
+
+    // ── Rounds ────────────────────────────────────────────────────────────────
+    function addRound() {
+      const id = ++roundId;
+      rounds.push({ id });
+      renderRounds();
+      buildJSON();
+    }
+
+    function removeRound(id) {
+      rounds = rounds.filter(r => r.id !== id);
+      renderRounds();
+      buildJSON();
+    }
+
+    function renderRounds() {
+      const el = document.getElementById('rounds-list');
+      el.innerHTML = rounds.map((r, i) => `
+        <div class="repeatable-item" id="round-${r.id}">
+          <div class="item-header">
+            <span class="item-label">Round ${i + 1}</span>
+            <button class="remove-btn" onclick="removeRound(${r.id})">Remove</button>
+          </div>
+          <div class="field-group"><label>Round Name</label>
+            <input type="text" id="r-name-${r.id}" placeholder="e.g. Preliminary" oninput="buildJSON()"/></div>
+          <div class="field-row">
+            <div class="field-group"><label>Start Time</label>
+              <input type="datetime-local" id="r-start-${r.id}" oninput="buildJSON()"/></div>
+            <div class="field-group"><label>End Time</label>
+              <input type="datetime-local" id="r-end-${r.id}" oninput="buildJSON()"/></div>
+          </div>
+          <div class="field-row">
+            <div class="field-group"><label>Location</label>
+              <input type="text" id="r-loc-${r.id}" placeholder="e.g. Room 101" oninput="buildJSON()"/></div>
+            <div class="field-group"><label>Location Link</label>
+              <input type="url" id="r-loclink-${r.id}" placeholder="https://..." oninput="buildJSON()"/></div>
+          </div>
+          <div class="field-group"><label>Description</label>
+            <textarea id="r-desc-${r.id}" rows="2" oninput="buildJSON()"></textarea></div>
+        </div>`).join('');
+    }
+
+    // ── FAQs ──────────────────────────────────────────────────────────────────
+    function addFAQ() {
+      const id = ++faqId;
+      faqs.push({ id });
+      renderFAQs();
+      buildJSON();
+    }
+
+    function removeFAQ(id) {
+      faqs = faqs.filter(f => f.id !== id);
+      renderFAQs();
+      buildJSON();
+    }
+
+    function renderFAQs() {
+      const el = document.getElementById('faqs-list');
+      el.innerHTML = faqs.map((f, i) => `
+        <div class="repeatable-item">
+          <div class="item-header">
+            <span class="item-label">FAQ ${i + 1}</span>
+            <button class="remove-btn" onclick="removeFAQ(${f.id})">Remove</button>
+          </div>
+          <div class="field-group"><label>Question</label>
+            <input type="text" id="faq-q-${f.id}" placeholder="e.g. Is the event open to all?" oninput="buildJSON()"/></div>
+          <div class="field-group"><label>Answer</label>
+            <textarea id="faq-a-${f.id}" rows="2" oninput="buildJSON()"></textarea></div>
+        </div>`).join('');
+    }
+
+    // ── Form blocks + elements ────────────────────────────────────────────────
+    function addBlock() {
+      const id = ++blockId;
+      blocks.push({ id, elements: [] });
+      renderBlocks();
+      buildJSON();
+    }
+
+    function removeBlock(id) {
+      blocks = blocks.filter(b => b.id !== id);
+      renderBlocks();
+      buildJSON();
+    }
+
+    function addElement(blockId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (block) { block.elements.push({ id: ++elId }); }
+      renderBlocks();
+      buildJSON();
+    }
+
+    function removeElement(blockId, eId) {
+      const block = blocks.find(b => b.id === blockId);
+      if (block) block.elements = block.elements.filter(e => e.id !== eId);
+      renderBlocks();
+      buildJSON();
+    }
+
+    function renderBlocks() {
+      const container = document.getElementById('blocks-list');
+      container.innerHTML = blocks.map((b, bi) => `
+        <div class="repeatable-item" style="margin-bottom:1rem;">
+          <div class="item-header">
+            <span class="item-label">Block ${bi + 1}</span>
+            <button class="remove-btn" onclick="removeBlock(${b.id})">Remove Block</button>
+          </div>
+          <div class="field-group"><label>Block Title (Section Name)</label>
+            <input type="text" id="bl-title-${b.id}" placeholder="e.g. Participant Details" oninput="buildJSON()"/></div>
+
+          ${b.elements.map((el, ei) => `
+            <div class="repeatable-item" style="margin:0.5rem 0;">
+              <div class="item-header">
+                <span class="item-label">Field ${ei + 1}</span>
+                <button class="remove-btn" onclick="removeElement(${b.id},${el.id})">Remove</button>
+              </div>
+              <div class="field-row">
+                <div class="field-group"><label>Label</label>
+                  <input type="text" id="el-label-${el.id}" placeholder="e.g. Full Name"
+                    oninput="autoSlug(${el.id});buildJSON()"/></div>
+                <div class="field-group"><label>Field Type</label>
+                  <select id="el-type-${el.id}" onchange="toggleOptions(${el.id});buildJSON()">
+                    <option value="text">Text</option>
+                    <option value="email">Email</option>
+                    <option value="tel">Phone</option>
+                    <option value="number">Number</option>
+                    <option value="textarea">Long Text</option>
+                    <option value="select">Dropdown</option>
+                    <option value="radio">Multiple Choice</option>
+                    <option value="checkbox">Checkboxes</option>
+                    <option value="url">URL</option>
+                    <option value="date">Date</option>
+                  </select></div>
+              </div>
+              <div class="field-group options-field" id="opts-${el.id}">
+                <label>Options (one per line)</label>
+                <textarea id="el-opts-${el.id}" rows="3" placeholder="Option 1&#10;Option 2&#10;Option 3"
+                  oninput="buildJSON()"></textarea>
+              </div>
+              <div class="checkbox-field">
+                <input type="checkbox" id="el-req-${el.id}" onchange="buildJSON()"/>
+                <label for="el-req-${el.id}">Required</label>
+              </div>
+            </div>`).join('')}
+
+          <button class="add-btn" onclick="addElement(${b.id})" style="margin-top:0.5rem;">+ Add Field</button>
+        </div>`).join('');
+    }
+
+    function autoSlug(id) {
+      const label = (document.getElementById('el-label-' + id) || {}).value || '';
+      // name field is internal — derived from label, not shown to user
+    }
+
+    function toggleOptions(id) {
+      const type  = (document.getElementById('el-type-' + id) || {}).value;
+      const needs = ['select','radio','checkbox'].includes(type);
+      const el    = document.getElementById('opts-' + id);
+      if (el) el.classList.toggle('visible', needs);
+    }
+
+    function toSlug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,''); }
+
+    // ── Build JSON ─────────────────────────────────────────────────────────────
+    function val(id)    { return (document.getElementById(id)||{}).value || ''; }
+    function checked(id){ return !!(document.getElementById(id)||{}).checked; }
+    function num(id)    { const v = val(id); return v === '' ? null : parseFloat(v); }
+
+    function buildJSON() {
+      const evJSON  = buildEventJSON();
+      const frmJSON = buildFormJSON();
+      document.getElementById('out-event').textContent = JSON.stringify(evJSON, null, 2);
+      document.getElementById('out-form').textContent  = JSON.stringify(frmJSON, null, 2);
+    }
+
+    function buildEventJSON() {
+      return {
+        id: null,
+        name: val('ev-name') || null,
+        description: val('ev-desc') || null,
+        is_approved: false,
+        department: { id: null, name: '' },
+        open: false,
+        max_team_size: num('ev-max-team'),
+        min_team_size: num('ev-min-team'),
+        max_participants: num('ev-max-part'),
+        header_image: val('ev-poster') || null,
+        start_date: val('ev-start') || null,
+        end_date: val('ev-end') || null,
+        registration_start_date: val('ev-reg-start') || null,
+        registration_end_date: val('ev-reg-end') || null,
+        fee: num('ev-fee') || 0,
+        location: val('ev-location') || null,
+        location_link: val('ev-location-link') || null,
+        rules: val('ev-rules') || null,
+        first_prize_amount:  String(num('ev-prize1') || 0) + '.00',
+        second_prize_amount: String(num('ev-prize2') || 0) + '.00',
+        third_prize_amount:  String(num('ev-prize3') || 0) + '.00',
+        is_team_event: checked('ev-team-event'),
+        rounds: rounds.map((r, i) => ({
+          id: r.id, event: null, name: val('r-name-' + r.id),
+          start_time: val('r-start-' + r.id), end_time: val('r-end-' + r.id),
+          location: val('r-loc-' + r.id), location_link: val('r-loclink-' + r.id),
+          description: val('r-desc-' + r.id)
+        })),
+        faqs: faqs.map((f, i) => ({
+          id: f.id, question: val('faq-q-' + f.id), answer: val('faq-a-' + f.id)
+        })),
+        sponsors: [], some_dudes: [], social_links: [],
+      };
+    }
+
+    function buildFormJSON() {
+      const name = val('form-name') || val('ev-name') || '';
+      return {
+        id: toSlug(name) || 'form', bg_img: '', name, desc: '', published: false,
+        blocks: blocks.map((b, bi) => ({
+          id: b.id, form: toSlug(name), position: bi + 1,
+          title: val('bl-title-' + b.id),
+          elements: b.elements.map((el, ei) => {
+            const label    = val('el-label-' + el.id);
+            const inputType= val('el-type-'  + el.id) || 'text';
+            const required = checked('el-req-' + el.id);
+            const optsRaw  = val('el-opts-'  + el.id);
+            const options  = optsRaw ? optsRaw.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+            const base = { id: el.id, position: ei+1, block_id: b.id,
+                           label, name: toSlug(label) || ('field_' + el.id),
+                           inputType, show: true };
+            if (['select','radio'].includes(inputType)) {
+              base.element = { id: el.id, value: '', required, inputs: options,
+                               ...(inputType==='radio'?{dependency:false}:{}) };
+            } else if (inputType === 'checkbox') {
+              base.element = { id: el.id, values: [], required, inputs: options };
+            } else if (inputType === 'textarea') {
+              base.element = { id: el.id, value: '', required, placeholder: '', autocomplete: false,
+                               maxLength: null, minLength: null, rows: 4, cols: null };
+            } else {
+              base.element = { id: el.id, value: '', required, placeholder: '', autocomplete: false,
+                               max: null, min: null, maxLength: null, minLength: null };
+            }
+            return base;
+          })
+        }))
+      };
+    }
+
+    // ── Copy / Download ────────────────────────────────────────────────────────
+    function copyOutput(type) {
+      const text = document.getElementById('out-' + type).textContent;
+      navigator.clipboard.writeText(text).then(() => alert('Copied!'));
+    }
+
+    function downloadOutput(type) {
+      const text = document.getElementById('out-' + type).textContent;
+      const name = val('ev-name').replace(/[^a-z0-9]/gi, '_') || 'event';
+      const blob = new Blob([text], { type: 'application/json' });
+      const a = Object.assign(document.createElement('a'),
+        { href: URL.createObjectURL(blob), download: name + '_' + type + '.json' });
+      a.click();
+    }
+
+    function previewEvent() {
+      const evJSON = document.getElementById('out-event').textContent;
+      const poster = val('ev-poster');
+      const params = new URLSearchParams({ dept: 'cultural', poster_url: poster, details_json: evJSON });
+      window.open('event.html?' + params.toString(), '_blank');
+    }
+
+    // ── AI mode ────────────────────────────────────────────────────────────────
+    const AI_PROMPT = `You are helping create a JSON for a college fest event at IIT Madras (Paradox 2026).
+
+I need TWO JSON objects from you:
+
+=== 1. event_json ===
+{
+  "id": null,
+  "name": "Event Name",
+  "description": "Full description of the event",
+  "is_approved": false,
+  "department": { "id": null, "name": "Culturals OR Technicals OR Sports" },
+  "open": false,
+  "max_team_size": 1,         (number or null)
+  "min_team_size": 1,         (number or null)
+  "max_participants": null,   (number or null)
+  "header_image": null,       (leave null)
+  "start_date": "2026-06-10T09:00:00+05:30",   (ISO format)
+  "end_date": "2026-06-10T18:00:00+05:30",
+  "registration_start_date": "2026-05-01T00:00:00+05:30",
+  "registration_end_date": "2026-06-08T23:59:00+05:30",
+  "fee": 0,
+  "location": "CLT",
+  "location_link": null,
+  "rules": null,              (URL to rulebook or null)
+  "first_prize_amount": "0.00",
+  "second_prize_amount": "0.00",
+  "third_prize_amount": "0.00",
+  "is_team_event": false,
+  "rounds": [
+    {
+      "id": 1, "event": null, "name": "Round Name",
+      "start_time": "2026-06-10T09:00:00+05:30",
+      "end_time": "2026-06-10T12:00:00+05:30",
+      "location": "Venue", "location_link": "",
+      "description": "What happens in this round"
+    }
+  ],
+  "faqs": [
+    { "id": 1, "question": "Question?", "answer": "Answer." }
+  ],
+  "sponsors": [], "some_dudes": [], "social_links": []
+}
+
+=== 2. form_json ===
+{
+  "id": "form_slug",
+  "bg_img": "", "name": "Event Name", "desc": "", "published": false,
+  "blocks": [
+    {
+      "id": 1, "form": "form_slug", "position": 1, "title": "Participant Details",
+      "elements": [
+        {
+          "id": 1, "position": 1, "block_id": 1,
+          "label": "Full Name", "name": "full_name",
+          "inputType": "text",   (text/email/tel/number/textarea/select/radio/checkbox/url/date)
+          "show": true,
+          "element": {
+            "id": 1, "value": "", "required": true,
+            "placeholder": "Enter your full name", "autocomplete": true
+          }
+        },
+        {
+          "id": 2, "position": 2, "block_id": 1,
+          "label": "Gender", "name": "gender",
+          "inputType": "select", "show": true,
+          "element": { "id": 2, "value": "", "required": true, "inputs": ["Male","Female","Other"] }
+        }
+      ]
+    }
+  ]
+}
+
+Now please create both JSONs for the following event:
+[DESCRIBE YOUR EVENT HERE — name, department, dates, rounds, registration details, prizes, FAQ etc.]
+
+Return ONLY the two JSON objects, labelled "event_json:" and "form_json:". No extra text.`;
+
+    function renderAIPrompt() {
+      document.getElementById('ai-prompt-box').textContent = AI_PROMPT;
+    }
+
+    function copyPrompt() {
+      navigator.clipboard.writeText(AI_PROMPT).then(() => alert('Prompt copied! Paste it into ChatGPT or Claude.'));
+    }
+
+    function validateAIInput(type) {
+      const el  = document.getElementById('ai-' + type + '-input');
+      const err = document.getElementById('ai-' + type + '-err');
+      try { JSON.parse(el.value); err.innerHTML = ''; el.style.borderColor = '#4ade80'; }
+      catch(e) { err.innerHTML = '<span class="err-msg">' + e.message + '</span>'; el.style.borderColor = '#f87171'; }
+    }
+
+    function useAIOutput() {
+      const evRaw   = document.getElementById('ai-event-input').value.trim();
+      const frmRaw  = document.getElementById('ai-form-input').value.trim();
+      let evJSON, frmJSON;
+      try { evJSON  = JSON.parse(evRaw); }  catch(e) { alert('event_json is not valid JSON:\n' + e.message); return; }
+      try { frmJSON = JSON.parse(frmRaw); } catch(e) { alert('form_json is not valid JSON:\n' + e.message); return; }
+
+      // Show in output
+      document.getElementById('out-event').textContent = JSON.stringify(evJSON, null, 2);
+      document.getElementById('out-form').textContent  = JSON.stringify(frmJSON, null, 2);
+      setMode('ui');
+      alert('JSON loaded! Scroll down to copy or download.');
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────────
+    buildJSON();
+  </script>
+</body>
+</html>

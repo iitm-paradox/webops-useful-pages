@@ -70,8 +70,8 @@
           a.className = 'event-card-link' + (ev.is_approved ? '' : ' not-approved');
           const ep = new URLSearchParams({
             dept,
-            poster_id:    ev.poster_id,
-            details_json: ev.details_json,
+            poster_url:   ev.poster_url,
+            details_json: ev.event_json,
           });
           a.href  = 'event.html?' + ep.toString();
           a.title = ev.name;
@@ -85,10 +85,10 @@
           const inner = document.createElement('div');
           inner.className = 'event-card-inner';
 
-          if (ev.poster_id) {
+          if (ev.poster_url) {
             const img = document.createElement('img');
             img.alt = ev.name;
-            img.src = driveImgUrl(ev.poster_id);
+            img.src = ev.poster_url;
             img.onerror = () => {
               img.style.display = 'none';
               inner.insertAdjacentHTML(
