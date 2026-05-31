@@ -150,16 +150,21 @@ function parseSheet(csv) {
  */
 function parseCSVLine(line) {
   const result = [];
-  let cur = '', inQuote = false;
-  for (let i = 0; i < line.length; i++) {
+  let cur = '', inQuote = false, i = 0;
+  while (i < line.length) {
     const ch = line[i];
     if (ch === '"') {
+      if (inQuote && line[i + 1] === '"') {
+        // escaped quote inside quoted field ("" → ")
+        cur += '"'; i += 2; continue;
+      }
       inQuote = !inQuote;
     } else if (ch === ',' && !inQuote) {
       result.push(cur); cur = '';
     } else {
       cur += ch;
     }
+    i++;
   }
   result.push(cur);
   return result;
