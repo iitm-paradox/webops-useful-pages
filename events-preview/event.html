@@ -283,6 +283,19 @@
       }
       if (type === 'checkbox') {
         const inputs = el.element?.inputs || [];
+        // Single option: label is the consent text, option is "I Agree" — render inline
+        if (inputs.length <= 1) {
+          const optText = inputs[0] || 'I Agree';
+          return `<div style="${span}display:flex;flex-direction:column;gap:0.75rem;">
+            <p style="font-size:0.7rem;font-weight:bold;text-transform:uppercase;letter-spacing:0.2em;opacity:0.7;color:${formColor};line-height:1.5;">${el.label}</p>
+            <div style="background:${formColor};border-radius:2px;padding:0.85rem 1rem;">
+              <label style="display:flex;align-items:center;gap:0.75rem;color:white;font-size:0.95rem;cursor:pointer;">
+                <div style="width:22px;height:22px;border-radius:3px;border:2.5px solid white;background:rgba(0,0,0,0.2);flex-shrink:0;"></div>
+                <span>${optText}</span>
+              </label>
+            </div>
+          </div>`;
+        }
         const opts = inputs.map(o => `
           <label style="display:flex;align-items:center;gap:0.75rem;color:white;font-size:0.95rem;cursor:pointer;">
             <div style="width:22px;height:22px;border-radius:3px;border:2.5px solid white;background:rgba(0,0,0,0.2);flex-shrink:0;"></div>
